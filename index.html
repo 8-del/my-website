@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Minimal Expression Finder</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #121212;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 40px;
+      overflow: hidden;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.7); opacity: 0; }
+      60% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: rgba(30, 30, 30, 0.85);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+      position: relative;
+      z-index: 10;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #ddd;
+      text-shadow: 0 0 8px #007bffaa;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #444;
+      border-radius: 6px;
+      background: #222;
+      color: #eee;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 8px #007bffaa;
+      background: #1a1a1a;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 0 8px #007bffaa;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+      box-shadow: 0 0 15px #0056b3cc;
+    }
+
+    #results {
+      margin-top: 30px;
+      font-family: 'Courier New', monospace;
+      white-space: nowrap;
+    }
+
+    .results-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .expr {
+      flex: 1;
+      background: #1e1e1e;
+      border-left: 5px solid #007bff;
+      padding: 10px 15px;
+      border-radius: 6px;
+      color: #ccc;
+      font-family: 'Courier New', monospace;
+      box-shadow: inset 0 0 6px #007bff33;
+      opacity: 0;
+      transform: scale(0.9);
+    }
+
+    .expr.pop {
+      animation: popIn 0.6s ease forwards;
+    }
+
+    .background {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      z-index: 0;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      pointer-events: none;
+    }
+
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(0, 123, 255, 0.2);
+      filter: drop-shadow(0 0 6px #007bff88);
+      will-change: transform;
+      opacity: 0.6;
+    }
+
+    .copyright {
+      position: fixed;
+      bottom: 10px;
+      right: 20px;
+      font-size: 14px;
+      color: #888;
+      z-index: 20;
+      pointer-events: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="background" aria-hidden="true"></div>
+  <div class="container" role="main">
+    <h2>Minimal Expression Finder</h2>
+    <div class="input-group">
+      <input type="text" id="digits" placeholder="Enter digits, e.g., 7,3,6,9" value="7,3,6,9" />
+      <button onclick="compute()">Compute</button>
+    </div>
+    <div id="results"></div>
+  </div>
+  <div class="copyright">© 2025 William Skora. All rights reserved.</div>
+
+  <script>
+    const background = document.querySelector('.background');
+    const bubbles = [];
+    const bubbleCount = 60;
+    function randomRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    for (let i = 0; i < bubbleCount; i++) {
+      const bubble = document.createElement('div');
+      bubble.className = 'circle';
+      const size = randomRange(15, 50);
+      bubble.style.width = `${size}px`;
+      bubble.style.height = `${size}px`;
+      bubble.style.left = `${randomRange(0, window.innerWidth)}px`;
+      bubble.style.top = `${randomRange(0, window.innerHeight + 100)}px`;
+      background.appendChild(bubble);
+      bubbles.push({ el: bubble, size, x: bubble.offsetLeft, y: bubble.offsetTop, speed: randomRange(20, 60) });
+    }
+
+    let lastTimestamp = null;
+    function animate(time) {
+      if (!lastTimestamp) lastTimestamp = time;
+      const delta = (time - lastTimestamp) / 1000;
+      lastTimestamp = time;
+      for (const b of bubbles) {
+        b.y -= b.speed * delta;
+        if (b.y + b.size < 0) {
+          b.y = window.innerHeight + randomRange(20, 100);
+          b.x = randomRange(0, window.innerWidth);
+          b.size = randomRange(15, 50);
+          b.el.style.width = `${b.size}px`;
+          b.el.style.height = `${b.size}px`;
+        }
+        b.el.style.top = `${b.y}px`;
+        b.el.style.left = `${b.x}px`;
+      }
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+
+    window.addEventListener('resize', () => {
+      for (const b of bubbles) {
+        b.x = randomRange(0, window.innerWidth);
+        b.el.style.left = `${b.x}px`;
+      }
+    });
+
+    async function typeWriter(element, text, speed = 20) {
+      element.textContent = '';
+      for (let i = 0; i < text.length; i++) {
+        element.textContent += text[i];
+        await new Promise(r => setTimeout(r, speed + Math.random() * speed * 1.5));
+      }
+    }
+
+    async function compute() {
+      const input = document.getElementById("digits").value;
+      const digits = input.split(',').map(s => s.trim()).filter(Boolean).map(Number);
+      if (digits.some(d => isNaN(d))) {
+        alert("Please enter only valid numbers separated by commas.");
+        return;
+      }
+
+      const targets = Array.from({ length: 10 }, (_, i) => i + 1);
+      const ops = ['+', '-', '*', '/'];
+      const resultsMap = Object.fromEntries(targets.map(t => [t, null]));
+      const seen = new Set();
+
+      function* permute(nums) {
+        nums.sort((a, b) => a - b);
+        const used = Array(nums.length).fill(false);
+        const path = [];
+        function* backtrack() {
+          if (path.length === nums.length) {
+            yield path.slice();
+            return;
+          }
+          for (let i = 0; i < nums.length; i++) {
+            if (used[i] || (i > 0 && nums[i] === nums[i - 1] && !used[i - 1])) continue;
+            used[i] = true;
+            path.push(nums[i]);
+            yield* backtrack();
+            path.pop();
+            used[i] = false;
+          }
+        }
+        yield* backtrack();
+      }
+
+      function getConcatenations(nums) {
+        const res = [];
+        const n = nums.length;
+        const max = 1 << (n - 1);
+        for (let mask = 0; mask < max; mask++) {
+          let group = [];
+          let current = '' + nums[0];
+          for (let i = 1; i < n; i++) {
+            if (mask & (1 << (i - 1))) {
+              group.push(+current);
+              current = '' + nums[i];
+            } else {
+              current += nums[i];
+            }
+          }
+          group.push(+current);
+          res.push(group);
+        }
+        res.sort((a, b) => a.length - b.length);
+        return res;
+      }
+
+      function* opCombos(n) {
+        if (n === 0) yield [];
+        else {
+          for (const op of ops) {
+            for (const rest of opCombos(n - 1)) {
+              yield [op, ...rest];
+            }
+          }
+        }
+      }
+
+      function buildExpr(nums, opset) {
+        const precedence = { '+': 1, '-': 1, '*': 2, '/': 2 };
+        function helper(i, j) {
+          if (i === j) return [{ expr: nums[i].toString(), op: null, opsCount: 0 }];
+          const results = [];
+          for (let k = i; k < j; k++) {
+            const lefts = helper(i, k);
+            const rights = helper(k + 1, j);
+            const op = opset[k];
+            for (const left of lefts) {
+              for (const right of rights) {
+                const l = (left.op && precedence[left.op] < precedence[op]) ? `(${left.expr})` : left.expr;
+                const r = (right.op && precedence[right.op] <= precedence[op]) ? `(${right.expr})` : right.expr;
+                results.push({ expr: `${l}${op}${r}`, op, opsCount: left.opsCount + right.opsCount + 1 });
+              }
+            }
+          }
+          return results;
+        }
+        return helper(0, nums.length - 1);
+      }
+
+      for (const perm of permute(digits)) {
+        for (const group of getConcatenations(perm)) {
+          for (const opSet of opCombos(group.length - 1)) {
+            for (const { expr, opsCount } of buildExpr(group, opSet)) {
+              if (seen.has(expr)) continue;
+              seen.add(expr);
+              let val;
+              try { val = eval(expr); } catch { continue; }
+              if (Math.abs(val - Math.round(val)) > 1e-9) continue;
+              const intVal = Math.round(val);
+              if (!targets.includes(intVal)) continue;
+              const prev = resultsMap[intVal];
+              if (!prev || expr.length < prev.length) {
+                resultsMap[intVal] = expr;
+              }
+            }
+          }
+        }
+      }
+
+      const resultDiv = document.getElementById("results");
+      resultDiv.innerHTML = '<h3>Results:</h3><div class="results-grid"></div>';
+      const grid = resultDiv.querySelector('.results-grid');
+
+      for (let i = 1; i <= 5; i++) {
+        const leftExpr = resultsMap[i] ? resultsMap[i].replace(/\*/g, 'x').replace(/\//g, '÷') : 'No solution';
+        const rightExpr = resultsMap[i + 5] ? resultsMap[i + 5].replace(/\*/g, 'x').replace(/\//g, '÷') : 'No solution';
+
+        const row = document.createElement('div');
+        row.className = 'row';
+
+        const leftDiv = document.createElement('div');
+        leftDiv.className = 'expr';
+        row.appendChild(leftDiv);
+
+        const rightDiv = document.createElement('div');
+        rightDiv.className = 'expr';
+        row.appendChild(rightDiv);
+
+        grid.appendChild(row);
+
+        const delay = i * 200;
+        setTimeout(() => {
+          leftDiv.classList.add('pop');
+          rightDiv.classList.add('pop');
+          typeWriter(leftDiv, `${i}: ${leftExpr}`);
+          typeWriter(rightDiv, `${i + 5}: ${rightExpr}`);
+        }, delay);
+      }
+    }
+  </script>
+</body>
+</html>
