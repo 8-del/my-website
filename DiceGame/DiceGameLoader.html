@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dice Challenge</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</head>
+<body class="dark-mode">
+  <div class="game-container">
+    <div class="theme-switch-wrapper">
+      <label class="theme-switch" for="checkbox">
+        <input type="checkbox" id="checkbox" checked />
+        <div class="slider round"></div>
+      </label>
+    </div>
+
+    <h1>Dice Challenge</h1>
+
+    <div class="dice-grid">
+      <div class="die" id="die1"></div>
+      <div class="die" id="die2"></div>
+      <div class="die" id="die3"></div>
+      <div class="die" id="die4"></div>
+    </div>
+
+    <button id="rollButton">Roll Dice!</button>
+
+    <p class="message" id="gameMessage">Match four numbers to win!</p>
+
+    <div class="stats">
+      <p>Rolls Left: <span id="rollsLeft" class="stat-value">3</span></p>
+      <p>Wins: <span id="score" class="stat-value">0</span></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
